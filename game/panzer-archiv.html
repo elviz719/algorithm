@@ -1,0 +1,634 @@
+<title>Панцер-Архив</title>
+<meta name="description" content="Игра-досье: рассекретьте все проекты немецкой бронетехники 1933–1945, отвечая на вопросы о каждой машине.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Staatliches&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Design tokens ===== */
+:root{
+  --paper:#e7e0cb;
+  --paper-2:#dcd3b8;
+  --ink:#20241f;
+  --ink-dim:#4d5147;
+  --line-soft:#b9ae8c;
+  --accent:#a9622e;      /* brass/rust stamp */
+  --accent-ink:#5c2f13;
+  --ok:#3f6b3f;
+  --ok-ink:#1f3a1f;
+  --bad:#9b3226;
+  --card-bg:#f2ecd9;
+  --card-locked:#d8cfae;
+  --shadow: 0 1px 0 rgba(32,36,31,.08);
+  --focus:#1c5fa8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#122334;
+    --paper-2:#0d1c2a;
+    --ink:#d9e6ef;
+    --ink-dim:#93a9b8;
+    --line-soft:#2c4a63;
+    --accent:#d99a4e;
+    --accent-ink:#f0c088;
+    --ok:#6fae72;
+    --ok-ink:#a8dcab;
+    --bad:#e0685a;
+    --card-bg:#16283b;
+    --card-locked:#0f2032;
+    --shadow: 0 1px 0 rgba(0,0,0,.4);
+    --focus:#6fb3f0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#122334;
+  --paper-2:#0d1c2a;
+  --ink:#d9e6ef;
+  --ink-dim:#93a9b8;
+  --line-soft:#2c4a63;
+  --accent:#d99a4e;
+  --accent-ink:#f0c088;
+  --ok:#6fae72;
+  --ok-ink:#a8dcab;
+  --bad:#e0685a;
+  --card-bg:#16283b;
+  --card-locked:#0f2032;
+  --shadow: 0 1px 0 rgba(0,0,0,.4);
+  --focus:#6fb3f0;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", system-ui, sans-serif;
+  padding-inline:16px;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity:.15;
+}
+h1,h2,h3{ text-wrap:balance; }
+.mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* ===== Header / dossier banner ===== */
+.dossier-head{
+  position:relative; z-index:1;
+  max-width:1120px; margin:0 auto;
+  padding-block:28px 16px;
+  display:flex; flex-wrap:wrap; gap:20px 32px;
+  align-items:flex-end; justify-content:space-between;
+  border-bottom:3px double var(--ink-dim);
+}
+.title-block .eyebrow{
+  font-family:"IBM Plex Mono"; font-size:.72rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent-ink); margin:0 0 6px;
+}
+.title-block h1{
+  font-family:"Staatliches", sans-serif;
+  font-size:clamp(2.1rem, 5vw, 3.4rem);
+  letter-spacing:.02em;
+  line-height:1;
+  margin:0;
+  color:var(--ink);
+}
+.title-block p{
+  margin:8px 0 0; max-width:52ch; color:var(--ink-dim); font-size:.95rem;
+}
+.status-panel{
+  display:flex; gap:18px; align-items:center; flex-wrap:wrap;
+}
+.stat{
+  text-align:right; min-width:88px;
+}
+.stat .num{
+  font-family:"IBM Plex Mono"; font-weight:600; font-size:1.5rem; color:var(--accent-ink);
+  display:block;
+}
+.stat .lbl{
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim);
+}
+.progress-track{
+  width:180px; height:8px; border:1px solid var(--ink-dim); background:var(--card-locked);
+  position:relative; overflow:hidden;
+}
+.progress-fill{
+  height:100%; background:var(--accent); transition:width .4s ease;
+}
+button.reset-btn{
+  font-family:"IBM Plex Mono"; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
+  background:transparent; border:1px solid var(--ink-dim); color:var(--ink-dim);
+  padding:7px 12px; cursor:pointer; border-radius:2px;
+}
+button.reset-btn:hover{ border-color:var(--bad); color:var(--bad); }
+
+/* ===== Category nav ===== */
+.cat-nav{
+  position: sticky; top:0; z-index:5;
+  max-width:1120px; margin:0 auto; padding-block:10px;
+  display:flex; gap:8px; overflow-x:auto; scrollbar-width:thin;
+  background:var(--paper); border-bottom:1px solid var(--line-soft);
+}
+.cat-nav a{
+  flex:0 0 auto;
+  font-family:"IBM Plex Mono"; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--ink-dim); text-decoration:none; border:1px solid var(--line-soft);
+  padding:6px 10px; border-radius:2px; white-space:nowrap;
+}
+.cat-nav a:hover, .cat-nav a:focus-visible{ border-color:var(--accent); color:var(--accent-ink); }
+
+main{ position:relative; z-index:1; max-width:1120px; margin:0 auto; padding-block:8px 60px; }
+
+section.category{ margin-top:38px; scroll-margin-top:64px; }
+.category-head{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  border-bottom:2px solid var(--ink-dim); padding-bottom:8px; margin-bottom:16px;
+}
+.category-head h2{
+  font-family:"Staatliches"; font-size:1.5rem; letter-spacing:.03em; margin:0; color:var(--ink);
+}
+.category-head .years{
+  font-family:"IBM Plex Mono"; font-size:.78rem; color:var(--ink-dim);
+}
+.category-head .count{
+  margin-left:auto; font-family:"IBM Plex Mono"; font-size:.78rem; color:var(--ink-dim);
+}
+
+.grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px;
+}
+
+/* ===== Card ===== */
+.card{
+  position:relative;
+  background:var(--card-bg);
+  border:1px solid var(--line-soft);
+  border-radius:3px;
+  box-shadow:var(--shadow);
+  padding:14px 14px 12px;
+  cursor:pointer;
+  text-align:left;
+  font:inherit; color:inherit;
+  display:flex; flex-direction:column; gap:8px;
+  min-height:190px;
+}
+.card:hover, .card:focus-visible{ border-color:var(--accent); outline:none; }
+.card:focus-visible{ box-shadow:0 0 0 2px var(--focus); }
+.card.locked{ background:var(--card-locked); }
+.card .code{ font-family:"IBM Plex Mono"; font-size:.68rem; color:var(--ink-dim); letter-spacing:.04em; }
+.card h3{ margin:0; font-family:"Staatliches"; font-size:1.15rem; letter-spacing:.01em; line-height:1.05; }
+.card.locked h3{ color:var(--ink-dim); }
+.tank-icon{ width:100%; height:52px; color:var(--ink-dim); }
+.card:not(.locked) .tank-icon{ color:var(--accent-ink); }
+.card .spec-row{
+  display:flex; gap:10px; flex-wrap:wrap; font-family:"IBM Plex Mono"; font-size:.72rem; color:var(--ink-dim);
+  margin-top:auto;
+}
+.card .spec-row b{ color:var(--ink); font-weight:600; }
+.card .note{ font-size:.78rem; color:var(--ink-dim); line-height:1.35; }
+
+.stamp{
+  position:absolute; top:10px; right:10px;
+  font-family:"IBM Plex Mono"; font-size:.6rem; letter-spacing:.08em; text-transform:uppercase;
+  padding:2px 6px; border:1.5px solid currentColor; border-radius:2px; transform:rotate(6deg);
+}
+.stamp.locked-stamp{ color:var(--bad); }
+.stamp.ok-stamp{ color:var(--ok); border-color:var(--ok); }
+
+/* ===== Modal ===== */
+.overlay{
+  position:fixed; inset:0; background:rgba(10,12,10,.55); z-index:20;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.overlay[hidden]{ display:none; }
+.dialog{
+  background:var(--paper); color:var(--ink); border:1px solid var(--line-soft);
+  max-width:480px; width:100%; max-height:88vh; overflow-y:auto;
+  border-radius:4px; box-shadow:0 12px 40px rgba(0,0,0,.35);
+  padding:22px 22px 20px;
+}
+.dialog .code{ font-family:"IBM Plex Mono"; font-size:.72rem; color:var(--ink-dim); }
+.dialog h2{ font-family:"Staatliches"; font-size:1.9rem; margin:2px 0 10px; letter-spacing:.02em; }
+.spec-table{ width:100%; border-collapse:collapse; margin:12px 0; font-family:"IBM Plex Mono"; font-size:.82rem;}
+.spec-table td{ padding:4px 0; border-bottom:1px dashed var(--line-soft); }
+.spec-table td:first-child{ color:var(--ink-dim); width:46%; }
+.dialog .note-block{
+  background:var(--card-bg); border-left:3px solid var(--accent); padding:10px 12px; margin-top:12px;
+  font-size:.88rem; line-height:1.45;
+}
+.quiz-q{ font-size:1.02rem; font-weight:600; margin:8px 0 14px; line-height:1.4; }
+.opt{
+  display:block; width:100%; text-align:left; margin-bottom:8px;
+  padding:10px 12px; border:1px solid var(--line-soft); background:var(--card-bg);
+  color:var(--ink); border-radius:3px; cursor:pointer; font-family:inherit; font-size:.92rem;
+}
+.opt:hover:not(:disabled){ border-color:var(--accent); }
+.opt:focus-visible{ outline:2px solid var(--focus); }
+.opt.correct{ border-color:var(--ok); background:color-mix(in srgb, var(--ok) 18%, var(--card-bg)); color:var(--ok-ink); }
+.opt.wrong{ border-color:var(--bad); background:color-mix(in srgb, var(--bad) 15%, var(--card-bg)); }
+.opt:disabled{ cursor:default; }
+.feedback{ margin-top:6px; font-size:.85rem; min-height:1.2em; }
+.feedback.ok{ color:var(--ok-ink); }
+.feedback.bad{ color:var(--bad); }
+.dialog-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+.btn{
+  font-family:"IBM Plex Mono"; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em;
+  padding:8px 14px; border-radius:3px; border:1px solid var(--ink-dim); background:transparent;
+  color:var(--ink); cursor:pointer;
+}
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:#241206; font-weight:600; }
+.btn:focus-visible{ outline:2px solid var(--focus); }
+
+footer{
+  position:relative; z-index:1; max-width:1120px; margin:0 auto; padding-block:20px 40px;
+  color:var(--ink-dim); font-size:.78rem; border-top:1px solid var(--line-soft);
+}
+
+@media (max-width:480px){
+  .status-panel{ gap:12px; }
+  .stat{ min-width:70px; }
+  .progress-track{ width:120px; }
+}
+</style>
+
+<div class="dossier-head">
+  <div class="title-block">
+    <p class="eyebrow">Waffenamt · Учётное дело №19-45</p>
+    <h1>Панцер-Архив</h1>
+    <p>Рассекретьте все проекты немецкой бронетехники 1933–1945 — от Pz.Kpfw. I до бумажных монстров вроде «Ratte». Отвечайте на вопрос по каждой машине, чтобы открыть её карточку.</p>
+  </div>
+  <div class="status-panel">
+    <div class="stat"><span class="num mono" id="stat-score">0</span><span class="lbl">Очков</span></div>
+    <div class="stat">
+      <span class="num mono"><span id="stat-unlocked">0</span>/<span id="stat-total">34</span></span>
+      <span class="lbl">Рассекречено</span>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <button class="reset-btn" id="reset-btn" type="button">Сбросить архив</button>
+  </div>
+</div>
+
+<nav class="cat-nav" id="cat-nav" aria-label="Разделы архива"></nav>
+
+<main id="main"></main>
+
+<footer>Данные приведены в справочных целях как исторический технический обзор бронетехники периода Второй мировой войны. Прогресс сохраняется локально в этом браузере.</footer>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+    <p class="code mono" id="dlg-code"></p>
+    <h2 id="dlg-title"></h2>
+    <div id="dlg-body"></div>
+    <div class="dialog-actions" id="dlg-actions"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== DATA ===================== */
+const CATEGORIES = [
+  {id:"legkie",   name:"Лёгкие танки",              years:"1934–1939"},
+  {id:"srednie",  name:"Средние танки",              years:"1934–1943"},
+  {id:"tyazh",    name:"Тяжёлые танки",              years:"1937–1944"},
+  {id:"proekty",  name:"Сверхтяжёлые и бумажные проекты", years:"1941–1944"},
+  {id:"serie",    name:"Стандартизированная серия «Е»", years:"1943–1945"},
+  {id:"istr",     name:"Истребители танков",         years:"1940–1945"},
+  {id:"samohod",  name:"Штурмовые и самоходные орудия", years:"1940–1944"},
+];
+
+const TANKS = [
+// --- Лёгкие ---
+{id:"pz1",cat:"legkie",name:"Pz.Kpfw. I",code:"Sd.Kfz. 101",year:"1934",mass:"5,8 т",crew:"2",gun:"нет пушки, 2×7,92-мм пулемёта",armor:"до 13 мм",speed:"40 км/ч",made:"≈1 867",
+ note:"Учебный и вспомогательный танк без пушки — на его шасси позже собрали первый серийный немецкий истребитель танков Panzerjäger I.",
+ q:"Каким было основное вооружение Pz.Kpfw. I?",opts:["Пушка 20 мм","Пушка 37 мм","Два пулемёта 7,92 мм","Пушка 50 мм"],ans:2},
+{id:"pz2",cat:"legkie",name:"Pz.Kpfw. II",code:"Sd.Kfz. 121",year:"1935",mass:"8,9 т",crew:"3",gun:"20-мм KwK 30/38",armor:"до 30 мм",speed:"40 км/ч",made:"≈1 800",
+ note:"Из-за задержек с Pz III и Pz IV именно Pz.Kpfw. II составлял основу танковых дивизий Германии на начало войны в Польше и Франции.",
+ q:"Какая пушка стояла на Pz.Kpfw. II?",opts:["20 мм","37 мм","50 мм","75 мм"],ans:0},
+{id:"pz35t",cat:"legkie",name:"Pz.Kpfw. 35(t)",code:"LT vz.35",year:"1938",mass:"10,5 т",crew:"4",gun:"37-мм Škoda",armor:"до 25 мм",speed:"34 км/ч",made:"≈434 (герм.)",
+ note:"Разработан в Чехословакии заводом Škoda; после аннексии Судет и оккупации страны стал массово поступать в вермахт.",
+ q:"В какой стране был разработан Pz.Kpfw. 35(t)?",opts:["Германия","Чехословакия","Австрия","Венгрия"],ans:1},
+{id:"pz38t",cat:"legkie",name:"Pz.Kpfw. 38(t)",code:"LT vz.38",year:"1939",mass:"9,7 т",crew:"4",gun:"37-мм KwK 38(t)",armor:"до 25 мм",speed:"42 км/ч",made:"≈1 400",
+ note:"Шасси чешского завода ČKD оказалось настолько удачным, что выпускалось до конца войны как база для истребителя танков «Hetzer».",
+ q:"Шасси какого лёгкого танка легло в основу истребителя танков «Hetzer»?",opts:["Pz.Kpfw. I","Pz.Kpfw. II","Pz.Kpfw. 35(t)","Pz.Kpfw. 38(t)"],ans:3},
+
+// --- Средние ---
+{id:"nbfz",cat:"srednie",name:"Neubaufahrzeug",code:"NbFz",year:"1934",mass:"≈23 т",crew:"6",gun:"75-мм + 37-мм в главной башне",armor:"до 20 мм",speed:"30 км/ч",made:"5",
+ note:"Многобашенный прототип с двумя дополнительными пулемётными башенками; всего 2 боевые машины были показаны в Норвегии в 1940 году в основном ради пропагандистского эффекта.",
+ q:"Сколько башен имел прототип Neubaufahrzeug?",opts:["Одна","Две","Три","Четыре"],ans:2},
+{id:"pz3",cat:"srednie",name:"Pz.Kpfw. III",code:"Sd.Kfz. 141",year:"1939",mass:"23 т",crew:"5",gun:"50-мм KwK 39 L/60",armor:"до 70 мм",speed:"40 км/ч",made:"≈5 700",
+ note:"Изначально нёс 37-мм пушку, но к 1942 году был перевооружён на более мощную 50-мм — впрочем, этого уже не хватало против Т-34.",
+ q:"Какой пушкой был перевооружён поздний Pz.Kpfw. III?",opts:["37 мм","50 мм","75 мм","88 мм"],ans:1},
+{id:"pz4",cat:"srednie",name:"Pz.Kpfw. IV",code:"Sd.Kfz. 161",year:"1936",mass:"25 т",crew:"5",gun:"75-мм KwK 40 L/48",armor:"до 80 мм",speed:"38 км/ч",made:"≈8 500",
+ note:"Единственный немецкий танк, выпускавшийся на протяжении всей войны без смены базовой модели — самая массовая немецкая танковая серия.",
+ q:"Какой немецкий танк стал самым массовым по числу выпущенных машин?",opts:["Pz.Kpfw. III","Pz.Kpfw. IV","Panther","Tiger I"],ans:1},
+{id:"panther",cat:"srednie",name:"Pz.Kpfw. V «Panther»",code:"Sd.Kfz. 171",year:"1943",mass:"44,8 т",crew:"5",gun:"75-мм KwK 42 L/70",armor:"до 120 мм",speed:"46 км/ч",made:"≈6 000",
+ note:"Создан как прямой ответ на советский Т-34 после «шока» от встречи с ним в 1941 году — с наклонной бронёй и длинноствольной пушкой.",
+ q:"Появление какого советского танка подтолкнуло Германию к созданию «Пантеры»?",opts:["КВ-1","Т-34","ИС-2","Т-70"],ans:1},
+
+// --- Тяжёлые ---
+{id:"vk3001",cat:"tyazh",name:"VK 3001/3601 (H)",code:"опытные шасси",year:"1940–42",mass:"32–40 т",crew:"5",gun:"опытные башни, не серийные",armor:"до 100 мм",speed:"≈35 км/ч",made:"единицы",
+ note:"Экспериментальные шасси фирмы Henschel, не принятые на вооружение — их наработки напрямую легли в основу будущего Tiger I.",
+ q:"Наработки какого серийного танка выросли из прототипов VK 3001/3601?",opts:["Pz.Kpfw. IV","Panther","Tiger I","Tiger II"],ans:2},
+{id:"tiger1",cat:"tyazh",name:"Pz.Kpfw. VI Tiger I",code:"Sd.Kfz. 181",year:"1942",mass:"57 т",crew:"5",gun:"88-мм KwK 36 L/56",armor:"до 100 мм",speed:"38 км/ч",made:"1 347",
+ note:"Первый в мире тяжёлый танк, использовавший зенитную 88-мм пушку как основное вооружение — сильно превосходил противников по дальности эффективного огня.",
+ q:"Какой калибр пушки нёс Tiger I?",opts:["75 мм","88 мм","105 мм","128 мм"],ans:1},
+{id:"tiger2",cat:"tyazh",name:"Pz.Kpfw. VI Ausf. B «Königstiger»",code:"Sd.Kfz. 182",year:"1944",mass:"≈70 т",crew:"5",gun:"88-мм KwK 43 L/71",armor:"до 180 мм",speed:"38 км/ч",made:"≈492",
+ note:"Самый тяжело бронированный серийный танк вермахта; лобовая броня практически не пробивалась большинством танковых пушек союзников на обычных дистанциях боя.",
+ q:"Как ещё называют Pz.Kpfw. VI Ausf. B?",opts:["Panther II","Königstiger («Королевский тигр»)","Löwe","Jagdtiger"],ans:1},
+
+// --- Проекты/монстры ---
+{id:"lowe",cat:"proekty",name:"Panzer VII «Löwe»",code:"проект Krupp",year:"1941",mass:"≈90 т",crew:"5–6",gun:"105 мм (проект)",armor:"проект",speed:"—",made:"0 (только чертежи)",
+ note:"Проект тяжёлого танка «Лев» массой около 90 тонн так и остался на бумаге — работы свернули в пользу более приоритетного Tiger.",
+ q:"Сколько экземпляров «Löwe» было построено в металле?",opts:["1 прототип","2 прототипа","5 машин","0 — только проект"],ans:3},
+{id:"maus",cat:"proekty",name:"Panzer VIII «Maus»",code:"Sd.Kfz. 205",year:"1944",mass:"≈188 т",crew:"6",gun:"128-мм + спаренная 75-мм",armor:"до 240 мм",speed:"≈13 км/ч",made:"2 (1 в сборе)",
+ note:"Самый тяжёлый танк, когда-либо построенный в металле — по одному его шасси хватило бы на несколько «Тигров».",
+ q:"Чем примечателен «Маус» среди всех танков, когда-либо построенных?",opts:["Самый быстрый","Самый лёгкий","Самый тяжёлый","Самый массовый"],ans:2},
+{id:"ratte",cat:"proekty",name:"Landkreuzer P.1000 «Ratte»",code:"проект Krupp",year:"1942–43",mass:"≈1000 т",crew:"≈20",gun:"2×280-мм морских орудия",armor:"проект",speed:"—",made:"0 (только чертежи)",
+ note:"Проект гигантского «сухопутного крейсера» с морскими орудиями линкора был отклонён министром вооружений Шпеером как нереалистичный.",
+ q:"Был ли «Ratte» построен хотя бы в виде прототипа?",opts:["Да, один прототип","Да, два прототипа","Нет, только проектная документация","Да, но был уничтожен при бомбёжке"],ans:2},
+{id:"p1500",cat:"proekty",name:"Landkreuzer P.1500 «Monster»",code:"проект",year:"1943",mass:"≈1500 т",crew:"≈100",gun:"800-мм орудие «Дора»",armor:"проект",speed:"—",made:"0 (только эскизы)",
+ note:"Ещё более фантастический проект — самоходная гусеничная платформа под сверхтяжёлое 800-мм орудие «Дора»; дальше эскизов дело не пошло.",
+ q:"Какое орудие планировалось установить на P.1500 «Monster»?",opts:["128-мм танковая пушка","150-мм гаубица","800-мм сверхтяжёлое орудие «Дора»","88-мм зенитная пушка"],ans:2},
+
+// --- Серия E ---
+{id:"e10",cat:"serie",name:"E-10",code:"проект серии E",year:"1944",mass:"≈16 т",crew:"3–4",gun:"75-мм (проект)",armor:"проект",speed:"—",made:"0 (эскизный проект)",
+ note:"Самый лёгкий член стандартизированной серии «Entwicklung» — программы по унификации узлов будущих немецких танков; до металла не дошёл.",
+ q:"Что означало сокращение «E» в названии серии E-10…E-100?",opts:["Elite","Entwicklung (разработка)","Einheit (единица)","Erprobung (испытание)"],ans:1},
+{id:"e25",cat:"serie",name:"E-25",code:"проект серии E",year:"1944",mass:"≈25 т",crew:"3–4",gun:"75-мм",armor:"проект",speed:"—",made:"отд. узлы, макет",
+ note:"Задумывался как замена лёгким истребителям танков вроде «Hetzer»; успели изготовить лишь отдельные узлы и деревянный макет корпуса.",
+ q:"Какую роль должен был выполнять E-25?",opts:["Тяжёлый танк","Лёгкий истребитель танков","Самоходную гаубицу","Зенитную установку"],ans:1},
+{id:"e50",cat:"serie",name:"E-50",code:"проект серии E",year:"1944–45",mass:"≈50 т",crew:"5",gun:"75-мм L/100 (проект)",armor:"проект",speed:"—",made:"0 (только чертежи)",
+ note:"Должен был заменить «Пантеру», унифицировав ходовую часть с E-75 для упрощения производства и ремонта в полевых условиях.",
+ q:"Какой серийный танк должен был заменить E-50?",opts:["Pz.Kpfw. IV","Panther","Tiger I","Tiger II"],ans:1},
+{id:"e75",cat:"serie",name:"E-75",code:"проект серии E",year:"1944–45",mass:"≈75 т",crew:"5–6",gun:"88 или 128-мм (проект)",armor:"проект",speed:"—",made:"0 (только чертежи)",
+ note:"Тяжёлый вариант серии E, призванный заменить дорогой в производстве Tiger II, разделяя узлы ходовой части с E-50.",
+ q:"Какой тяжёлый танк должен был заменить E-75?",opts:["Tiger I","Tiger II («Королевский тигр»)","Maus","Löwe"],ans:1},
+{id:"e100",cat:"serie",name:"E-100",code:"проект серии E",year:"1944–45",mass:"≈140 т",crew:"6",gun:"128 или 150-мм (проект)",armor:"до 200 мм (проект)",speed:"—",made:"1 недостроенный корпус",
+ note:"Сверхтяжёлый венец программы E, альтернатива «Маусу»; единственный недостроенный корпус был захвачен британскими войсками в 1945 году.",
+ q:"Что случилось с единственным построенным корпусом E-100?",opts:["Уничтожен в бою","Захвачен союзниками недостроенным","Успешно применён под Берлином","Взорван собственным экипажем"],ans:1},
+
+// --- Истребители танков ---
+{id:"pzj1",cat:"istr",name:"Panzerjäger I",code:"Sd.Kfz. 101",year:"1940",mass:"6,4 т",crew:"3",gun:"47-мм чешская Škoda",armor:"до 13 мм",speed:"40 км/ч",made:"≈202",
+ note:"Первый серийный немецкий истребитель танков — трофейную чешскую противотанковую пушку установили в открытой рубке на шасси устаревшего Pz.Kpfw. I.",
+ q:"На шасси какого танка построен первый серийный немецкий истребитель танков?",opts:["Pz.Kpfw. I","Pz.Kpfw. II","Pz.Kpfw. III","38(t)"],ans:0},
+{id:"marder2",cat:"istr",name:"Marder II",code:"Sd.Kfz. 131/132",year:"1942",mass:"11 т",crew:"3",gun:"75-мм PaK 40",armor:"до 30 мм",speed:"40 км/ч",made:"≈1 200",
+ note:"«Куница» на шасси Pz.Kpfw. II с открытой сверху рубкой — временное, но эффективное решение против советских Т-34 и КВ.",
+ q:"На шасси какого лёгкого танка построен Marder II?",opts:["Pz.Kpfw. I","Pz.Kpfw. II","Pz.Kpfw. 38(t)","Pz.Kpfw. III"],ans:1},
+{id:"marder3",cat:"istr",name:"Marder III",code:"Sd.Kfz. 138",year:"1942",mass:"10,7 т",crew:"4",gun:"75-мм PaK 40",armor:"до 50 мм",speed:"42 км/ч",made:"≈975",
+ note:"Использовал шасси чешского Pz.Kpfw. 38(t), производство которого продолжалось на заводе BMM в Праге даже после прекращения выпуска самого танка.",
+ q:"Шасси какого танка использовал Marder III?",opts:["Pz.Kpfw. 35(t)","Pz.Kpfw. 38(t)","Pz.Kpfw. II","Panther"],ans:1},
+{id:"stug3",cat:"istr",name:"StuG III (Ausf. G)",code:"Sd.Kfz. 142",year:"1940",mass:"23,9 т",crew:"4",gun:"75-мм StuK 40 L/48",armor:"до 80 мм",speed:"40 км/ч",made:"≈10 500",
+ note:"Штурмовое орудие без вращающейся башни стало самой массовой единицей немецкой бронетехники войны — дешевле и проще в производстве, чем полноценный танк.",
+ q:"Какая машина стала самой массовой бронетехникой Германии за всю войну?",opts:["Pz.Kpfw. IV","StuG III","Tiger I","Panther"],ans:1},
+{id:"hetzer",cat:"istr",name:"Jagdpanzer 38(t) «Hetzer»",code:"Sd.Kfz. 138/2",year:"1944",mass:"15,7 т",crew:"4",gun:"75-мм PaK 39 L/48",armor:"до 60 мм",speed:"42 км/ч",made:"≈2 800",
+ note:"Компактный и дешёвый истребитель танков с очень низким силуэтом — благодаря этому оставался эффективным до самого конца войны.",
+ q:"Чем в первую очередь отличался «Hetzer» от других истребителей танков?",opts:["Самая толстая броня","Очень низкий силуэт","Вращающаяся башня","Самая мощная пушка"],ans:1},
+{id:"jpz4",cat:"istr",name:"Jagdpanzer IV",code:"Sd.Kfz. 162",year:"1944",mass:"24 т",crew:"4",gun:"75-мм (L/48, позже L/70)",armor:"до 80 мм",speed:"35 км/ч",made:"≈1 900",
+ note:"Низкий корпус без башни на базе Pz.Kpfw. IV снижал заметность машины на поле боя по сравнению с обычным танком.",
+ q:"На базе какого серийного танка построен Jagdpanzer IV?",opts:["Pz.Kpfw. III","Pz.Kpfw. IV","Panther","Tiger I"],ans:1},
+{id:"jagdpanther",cat:"istr",name:"Jagdpanther",code:"Sd.Kfz. 173",year:"1944",mass:"≈46 т",crew:"5",gun:"88-мм PaK 43 L/71",armor:"до 100 мм",speed:"46 км/ч",made:"≈415",
+ note:"Сочетание брони «Пантеры» и мощнейшей 88-мм противотанковой пушки сделало его одним из самых опасных истребителей танков войны.",
+ q:"На базе какого танка построен Jagdpanther?",opts:["Tiger I","Tiger II","Panther","Pz.Kpfw. IV"],ans:2},
+{id:"ferdinand",cat:"istr",name:"Ferdinand / Elefant",code:"Sd.Kfz. 184",year:"1943",mass:"65 т",crew:"6",gun:"88-мм PaK 43/2 L/71",armor:"до 200 мм",speed:"30 км/ч",made:"91",
+ note:"Построен на неиспользованном шасси конкурсного проекта Порше для Tiger; впервые массово применён в битве на Курской дуге в 1943 году.",
+ q:"В каком сражении «Фердинанды» впервые массово применялись?",opts:["Сталинград","Курская дуга","Битва за Берлин","Арденны"],ans:1},
+{id:"jagdtiger",cat:"istr",name:"Jagdtiger",code:"Sd.Kfz. 186",year:"1944",mass:"≈75 т",crew:"6",gun:"128-мм PaK 44 L/55",armor:"до 250 мм",speed:"34 км/ч",made:"≈88",
+ note:"Самый тяжёлый серийный истребитель танков войны — его пушка могла пробивать броню любого танка союзников на большой дистанции.",
+ q:"Каким был Jagdtiger среди серийных истребителей танков войны?",opts:["Самым лёгким","Самым быстрым","Самым тяжёлым","Самым массовым"],ans:2},
+
+// --- Самоходки ---
+{id:"wespe",cat:"samohod",name:"Wespe",code:"Sd.Kfz. 124",year:"1943",mass:"11,5 т",crew:"5",gun:"105-мм leFH 18",armor:"до 30 мм",speed:"40 км/ч",made:"≈676",
+ note:"«Оса» — лёгкая самоходная гаубица на шасси Pz.Kpfw. II, обеспечивавшая огневую поддержку танковых дивизий на марше.",
+ q:"Какое орудие несла самоходка Wespe?",opts:["75-мм пушка","88-мм пушка","105-мм гаубица","150-мм гаубица"],ans:2},
+{id:"hummel",cat:"samohod",name:"Hummel",code:"Sd.Kfz. 165",year:"1943",mass:"24 т",crew:"5",gun:"150-мм sFH 18",armor:"до 30 мм",speed:"42 км/ч",made:"≈714",
+ note:"«Шмель» на смешанном шасси Pz.Kpfw. III/IV нёс тяжёлую 150-мм гаубицу для поддержки танковых частей с закрытых позиций.",
+ q:"На каком смешанном шасси строился Hummel?",opts:["Pz.Kpfw. II","Pz.Kpfw. III/IV","Panther","Tiger I"],ans:1},
+{id:"nashorn",cat:"samohod",name:"Nashorn (Hornisse)",code:"Sd.Kfz. 164",year:"1942",mass:"24 т",crew:"4",gun:"88-мм PaK 43/1 L/71",armor:"до 30 мм",speed:"40 км/ч",made:"≈494",
+ note:"«Носорог» нёс мощнейшую 88-мм пушку в лёгкой открытой сверху рубке — сильное вооружение при слабой защите экипажа.",
+ q:"Какая особенность рубки была у Nashorn?",opts:["Полностью закрытая и бронированная","Открытая сверху","Вращающаяся башня","Отсутствовала — орудие на прицепе"],ans:1},
+{id:"brummbar",cat:"samohod",name:"Brummbär (Sturmpanzer IV)",code:"Sd.Kfz. 166",year:"1943",mass:"28,2 т",crew:"5",gun:"150-мм StuH 43",armor:"до 100 мм",speed:"40 км/ч",made:"≈306",
+ note:"«Ворчун» с короткоствольной 150-мм гаубицей создавался специально для разрушения укреплений в уличных боях, например в Варшаве.",
+ q:"Для какой задачи в первую очередь создавался Brummbär?",opts:["Борьба с танками на дистанции","Разрушение укреплений в уличных боях","Зенитная оборона","Разведка"],ans:1},
+{id:"sturmtiger",cat:"samohod",name:"Sturmtiger",code:"Sd.Kfz. 182",year:"1944",mass:"65 т",crew:"5",gun:"380-мм реактивный миномёт",armor:"до 150 мм",speed:"38 км/ч",made:"18",
+ note:"На шасси Tiger I установили переоборудованный флотский бомбомёт калибра 380 мм — огромный фугасный снаряд предназначался для сноса целых зданий.",
+ q:"Сколько экземпляров Sturmtiger было выпущено за всю войну?",opts:["Всего 18","Около 200","Около 500","Более 1000"],ans:0},
+];
+
+/* ===================== STATE ===================== */
+const STORAGE_KEY = "panzerArchivProgress_v1";
+let state = { unlocked: {}, score: 0 };
+
+function loadState(){
+  try{
+    const fromHot = (window.claude && window.claude.hot && window.claude.hot.data) || null;
+    if (fromHot && fromHot.unlocked) return { unlocked: fromHot.unlocked, score: fromHot.score||0 };
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){ const parsed = JSON.parse(raw); if (parsed && parsed.unlocked) return { unlocked: parsed.unlocked, score: parsed.score||0 }; }
+  }catch(e){}
+  return { unlocked:{}, score:0 };
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+/* ===================== ICON ===================== */
+function tankIconSVG(){
+  return '<svg class="tank-icon" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<rect x="8" y="22" width="70" height="10" rx="1.5" fill="currentColor" opacity="0.85"/>' +
+    '<rect x="20" y="14" width="34" height="10" rx="1.5" fill="currentColor"/>' +
+    '<rect x="50" y="16" width="30" height="4" rx="2" fill="currentColor"/>' +
+    '<circle cx="18" cy="33" r="5" fill="currentColor" opacity="0.85"/>' +
+    '<circle cx="32" cy="33" r="5" fill="currentColor" opacity="0.85"/>' +
+    '<circle cx="46" cy="33" r="5" fill="currentColor" opacity="0.85"/>' +
+    '<circle cx="60" cy="33" r="5" fill="currentColor" opacity="0.85"/>' +
+    '<circle cx="72" cy="33" r="5" fill="currentColor" opacity="0.85"/>' +
+    '<rect x="6" y="30" width="72" height="4" rx="2" fill="currentColor" opacity="0.5"/>' +
+    '</svg>';
+}
+
+/* ===================== RENDER ===================== */
+const mainEl = document.getElementById("main");
+const navEl = document.getElementById("cat-nav");
+
+function totalCount(){ return TANKS.length; }
+function unlockedCount(){ return Object.keys(state.unlocked).length; }
+
+function renderNav(){
+  navEl.innerHTML = CATEGORIES.map(c => '<a href="#cat-'+c.id+'">'+c.name+'</a>').join("");
+}
+
+function renderAll(){
+  mainEl.innerHTML = CATEGORIES.map(cat => {
+    const items = TANKS.filter(t => t.cat === cat.id);
+    const unl = items.filter(t => state.unlocked[t.id]).length;
+    return (
+      '<section class="category" id="cat-'+cat.id+'">' +
+        '<div class="category-head">' +
+          '<h2>'+cat.name+'</h2>' +
+          '<span class="years mono">'+cat.years+'</span>' +
+          '<span class="count mono">'+unl+' / '+items.length+'</span>' +
+        '</div>' +
+        '<div class="grid">' + items.map(cardHTML).join("") + '</div>' +
+      '</section>'
+    );
+  }).join("");
+
+  document.querySelectorAll(".card").forEach(el => {
+    el.addEventListener("click", () => openDialog(el.getAttribute("data-id")));
+  });
+
+  document.getElementById("stat-score").textContent = state.score;
+  document.getElementById("stat-unlocked").textContent = unlockedCount();
+  document.getElementById("stat-total").textContent = totalCount();
+  document.getElementById("progress-fill").style.width = Math.round(100*unlockedCount()/totalCount()) + "%";
+}
+
+function cardHTML(t){
+  const isUnlocked = !!state.unlocked[t.id];
+  if (isUnlocked){
+    return (
+      '<button class="card" data-id="'+t.id+'" type="button">' +
+        '<span class="stamp ok-stamp">Проверено</span>' +
+        '<span class="code">'+t.code+' · '+t.year+'</span>' +
+        tankIconSVG() +
+        '<h3>'+t.name+'</h3>' +
+        '<div class="spec-row"><span><b>'+t.mass+'</b></span><span><b>'+t.gun+'</b></span></div>' +
+        '<div class="note">'+t.note+'</div>' +
+      '</button>'
+    );
+  }
+  return (
+    '<button class="card locked" data-id="'+t.id+'" type="button">' +
+      '<span class="stamp locked-stamp">Засекречено</span>' +
+      '<span class="code">'+t.code+'</span>' +
+      tankIconSVG() +
+      '<h3>???</h3>' +
+      '<div class="spec-row">Ответьте на вопрос, чтобы открыть дело</div>' +
+    '</button>'
+  );
+}
+
+/* ===================== DIALOG ===================== */
+const overlay = document.getElementById("overlay");
+const dlgCode = document.getElementById("dlg-code");
+const dlgTitle = document.getElementById("dlg-title");
+const dlgBody = document.getElementById("dlg-body");
+const dlgActions = document.getElementById("dlg-actions");
+let lastFocused = null;
+
+function openDialog(id){
+  const t = TANKS.find(x => x.id === id);
+  if (!t) return;
+  lastFocused = document.activeElement;
+  const isUnlocked = !!state.unlocked[t.id];
+  dlgCode.textContent = t.code + " · " + t.year;
+  dlgTitle.textContent = isUnlocked ? t.name : "Дело №" + t.id.toUpperCase() + " — засекречено";
+
+  if (isUnlocked){
+    dlgBody.innerHTML = specTableHTML(t) + '<div class="note-block">'+t.note+'</div>';
+    dlgActions.innerHTML = '<button class="btn primary" id="dlg-close">Закрыть</button>';
+    overlay.hidden = false;
+    document.getElementById("dlg-close").addEventListener("click", closeDialog);
+    document.getElementById("dlg-close").focus();
+  } else {
+    let attempts = 0;
+    dlgBody.innerHTML =
+      '<p class="quiz-q">'+t.q+'</p>' +
+      '<div id="opts">' + t.opts.map((o,i) => '<button class="opt" data-i="'+i+'" type="button">'+o+'</button>').join("") + '</div>' +
+      '<p class="feedback" id="feedback" aria-live="polite"></p>';
+    dlgActions.innerHTML = '<button class="btn" id="dlg-cancel">Отложить дело</button>';
+    overlay.hidden = false;
+
+    const optButtons = Array.from(document.querySelectorAll("#opts .opt"));
+    const feedback = document.getElementById("feedback");
+    optButtons[0] && optButtons[0].focus();
+
+    optButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = Number(btn.getAttribute("data-i"));
+        if (i === t.ans){
+          optButtons.forEach(b => b.disabled = true);
+          btn.classList.add("correct");
+          const pts = attempts === 0 ? 10 : attempts === 1 ? 5 : 2;
+          state.unlocked[t.id] = true;
+          state.score += pts;
+          saveState();
+          feedback.className = "feedback ok";
+          feedback.textContent = "Верно! +" + pts + " очков. Дело рассекречено.";
+          dlgActions.innerHTML = '<button class="btn primary" id="dlg-view">Открыть карточку</button>';
+          document.getElementById("dlg-view").addEventListener("click", () => { openDialog(t.id); });
+          document.getElementById("dlg-view").focus();
+          renderAll();
+        } else {
+          attempts++;
+          btn.classList.add("wrong");
+          btn.disabled = true;
+          feedback.className = "feedback bad";
+          feedback.textContent = "Неверно. Попробуйте ещё раз.";
+        }
+      });
+    });
+    document.getElementById("dlg-cancel").addEventListener("click", closeDialog);
+  }
+
+  document.addEventListener("keydown", escHandler);
+}
+
+function specTableHTML(t){
+  return '<table class="spec-table">' +
+    row("Год появления", t.year) +
+    row("Масса", t.mass) +
+    row("Экипаж", t.crew) +
+    row("Вооружение", t.gun) +
+    row("Бронирование", t.armor) +
+    row("Скорость", t.speed) +
+    row("Выпущено", t.made) +
+  '</table>';
+}
+function row(k,v){ return '<tr><td>'+k+'</td><td class="mono">'+v+'</td></tr>'; }
+
+function closeDialog(){
+  overlay.hidden = true;
+  document.removeEventListener("keydown", escHandler);
+  if (lastFocused) lastFocused.focus();
+}
+function escHandler(e){ if (e.key === "Escape") closeDialog(); }
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeDialog(); });
+
+/* ===================== RESET ===================== */
+document.getElementById("reset-btn").addEventListener("click", () => {
+  if (!confirm("Сбросить весь прогресс архива?")) return;
+  state = { unlocked:{}, score:0 };
+  saveState();
+  renderAll();
+});
+
+/* ===================== HOT RELOAD SNAPSHOT ===================== */
+function snapshot(){ return { unlocked: state.unlocked, score: state.score }; }
+function boot(initialData){
+  if (initialData && initialData.unlocked) state = { unlocked: initialData.unlocked, score: initialData.score||0 };
+  else state = loadState();
+  try{ if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(snapshot); }catch(e){}
+  renderNav();
+  renderAll();
+}
+
+try{
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
+  else boot(window.claude && window.claude.hot ? window.claude.hot.data : null);
+}catch(e){ boot(null); }
+
+})();
+</script>
