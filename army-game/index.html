@@ -233,6 +233,7 @@
   .badge.b-spg { background: #b9762f; }
   .badge.b-car { background: #7d8494; }
   .badge.b-float { background: #4f8f96; }
+  .badge.b-flame { background: #c9642f; }
 
   /* ---------- silhouette plate (recognition-card style) ---------- */
   .sil-frame {
@@ -417,7 +418,7 @@
         <section id="main-menu" class="screen active">
           <h1 class="title">Танковая Армия СССР</h1>
           <div class="rule"></div>
-          <p class="lede">Аркадный бой на советской бронетехнике Великой Отечественной войны и полная энциклопедия — 32 машины, стоявшие на вооружении с 1939 по 1945 год.</p>
+          <p class="lede">Аркадный бой на советской бронетехнике Великой Отечественной войны и полная энциклопедия — 45 машин, стоявших на вооружении и в опытной эксплуатации с 1931 по 1945 год.</p>
           <div class="menu-stack">
             <button id="btn-play" class="btn btn-primary">В бой</button>
             <button id="btn-encyclopedia" class="btn">Энциклопедия бронетехники</button>
@@ -428,7 +429,7 @@
         <!-- Выбор техники -->
         <section id="select-screen" class="screen">
           <h2 class="screen-title">Выберите боевую машину</h2>
-          <p class="lede" style="margin-bottom:0;">15 образцов, состоявших на вооружении Красной армии, доступны для управления.</p>
+          <p class="lede" style="margin-bottom:0;">19 образцов, состоявших на вооружении Красной армии, доступны для управления.</p>
           <div id="select-list" class="select-grid"></div>
           <button id="btn-back-1" class="btn btn-ghost">Назад</button>
         </section>
@@ -573,6 +574,53 @@ const VEHICLE_DATABASE = [
   { id:"ba64", name:"БА-64", class:"Лёгкий бронеавтомобиль", badge:"car", sil:"carSmall", years:"1942–1946", weight:"2.4 т", armor:"6–15 мм", gun:"пулемёт ДТ", speed:"80 км/ч", crew:2, built:"~9000",
     desc:"Самый массовый советский бронеавтомобиль войны, использовался для разведки и охраны штабов и колонн.",
     stats:{hp:32,speed:4.0,damage:6,fireRate:500}, playable:true, color:"#7d8494" },
+
+  // ---------------------- ТАНКЕТКИ И ДОВОЕННЫЕ БРОНЕАВТОМОБИЛИ ----------------------
+  { id:"t27", name:"Т-27", class:"Танкетка", badge:"light", sil:"tankette", years:"1931–1933", weight:"2.7 т", armor:"10 мм", gun:"пулемёт ДТ", speed:"42 км/ч", crew:2, built:"~3300",
+    desc:"Двухместная танкетка на базе английской «Карден-Лойд», применялась для разведки и охранения. К 1941 году полностью устарела.",
+    stats:{hp:26,speed:3.0,damage:4,fireRate:500}, playable:false, color:"#6f8f4a" },
+  { id:"ba3", name:"БА-3", class:"Средний бронеавтомобиль", badge:"car", sil:"carBig", years:"1934–1935", weight:"5.3 т", armor:"4–9 мм", gun:"45-мм пушка 20-К", speed:"63 км/ч", crew:4, built:"~180",
+    desc:"Один из первых средних бронеавтомобилей с башней от Т-26; для движения по железной дороге мог ставиться на съёмные колёсные скаты.",
+    stats:{hp:46,speed:3.5,damage:10,fireRate:1000}, playable:false, color:"#7d8494" },
+  { id:"ba6", name:"БА-6", class:"Средний бронеавтомобиль", badge:"car", sil:"carBig", years:"1936–1938", weight:"5.15 т", armor:"4–15 мм", gun:"45-мм пушка 20-К", speed:"53 км/ч", crew:4, built:"~380",
+    desc:"Модернизация БА-3 на шасси ГАЗ-ААА с усиленным бронированием; активно применялась в боях на Халхин-Голе.",
+    stats:{hp:50,speed:3.4,damage:10,fireRate:1000}, playable:false, color:"#7d8494" },
+  { id:"ba11", name:"БА-11", class:"Тяжёлый бронеавтомобиль", badge:"car", sil:"carBig", years:"1939–1940", weight:"8.1 т", armor:"9–13 мм", gun:"45-мм пушка 20-К", speed:"64 км/ч", crew:4, built:"~18",
+    desc:"Самый тяжёлый и защищённый советский довоенный бронеавтомобиль; из-за начала войны успели построить лишь малую серию.",
+    stats:{hp:58,speed:3.7,damage:11,fireRate:950}, playable:false, color:"#7d8494" },
+  { id:"fai", name:"ФАИ", class:"Лёгкий бронеавтомобиль", badge:"car", sil:"carOld", years:"1933–1936", weight:"2.0 т", armor:"4–6 мм", gun:"пулемёт ДТ", speed:"80 км/ч", crew:2, built:"~700",
+    desc:"Один из первых массовых лёгких бронеавтомобилей на шасси ГАЗ-А. К 1941 году устарел, но применялся в первые годы войны.",
+    stats:{hp:26,speed:3.9,damage:5,fireRate:450}, playable:false, color:"#7d8494" },
+  { id:"komsomolets", name:"Т-20 «Комсомолец»", class:"Бронированный тягач", badge:"light", sil:"komsomolets", years:"1937–1941", weight:"3.5 т", armor:"7–10 мм", gun:"пулемёт ДТ (самооборона)", speed:"47 км/ч", crew:2, built:"~7780",
+    desc:"Бронированный гусеничный тягач для буксировки противотанковых орудий и перевозки расчёта; часть машин переоборудовали в лёгкие САУ ЗИС-30.",
+    stats:{hp:34,speed:3.3,damage:5,fireRate:600}, playable:false, color:"#6f8f4a" },
+
+  // ---------------------- ОГНЕМЁТНЫЕ ТАНКИ ----------------------
+  { id:"ht26", name:"ХТ-26 (ОТ-26)", class:"Огнемётный танк", badge:"flame", sil:"t26", years:"1932–1939", weight:"9.4 т", armor:"15 мм", gun:"пороховой огнемёт КС-24 + пулемёт", speed:"30 км/ч", crew:2, built:"~1500",
+    desc:"Огнемётный вариант Т-26: вместо пушки в башне установлен огнемёт, использовался для поддержки пехоты при штурме укреплений.",
+    stats:{hp:58,speed:2.5,damage:14,fireRate:1200}, playable:true, color:"#c9642f" },
+  { id:"ot34", name:"ОТ-34", class:"Огнемётный танк", badge:"flame", sil:"t34", years:"1942–1946", weight:"30.9 т", armor:"45 мм", gun:"76-мм пушка + огнемёт АТО-41", speed:"53 км/ч", crew:4, built:"~1170",
+    desc:"Огнемётный вариант Т-34 сохранял пушку в башне, а огнемёт устанавливался вместо курсового пулемёта в лобовом листе корпуса.",
+    stats:{hp:102,speed:3.5,damage:22,fireRate:900}, playable:true, color:"#c9642f" },
+
+  // ---------------------- РАННИЕ И ЭКСПЕРИМЕНТАЛЬНЫЕ САУ ----------------------
+  { id:"su5", name:"СУ-5", class:"Лёгкая САУ", badge:"spg", sil:"su76", years:"1936–1938", weight:"10.5 т", armor:"10–15 мм", gun:"76-мм пушка / 122-мм гаубица", speed:"30 км/ч", crew:4, built:"~30",
+    desc:"Одна из первых советских серийных САУ, на базе Т-26; малой серией применялась у озера Хасан и в начале войны.",
+    stats:{hp:66,speed:2.2,damage:18,fireRate:1200}, playable:false, color:"#8a7a3e" },
+  { id:"zis30", name:"ЗИС-30", class:"Лёгкая противотанковая САУ", badge:"spg", sil:"zis30", years:"1941", weight:"4.0 т", armor:"6–10 мм", gun:"57-мм пушка ЗИС-2", speed:"42 км/ч", crew:4, built:"~100",
+    desc:"Противотанковая САУ на базе тягача «Комсомолец» с мощной для 1941 года 57-мм пушкой, пробивавшей броню любого немецкого танка того времени.",
+    stats:{hp:38,speed:3.1,damage:24,fireRate:1000}, playable:true, color:"#8a7a3e" },
+
+  // ---------------------- ПОСЛЕВОЕННЫЙ СРЕДНИЙ И ОПЫТНЫЕ ТЯЖЁЛЫЕ ----------------------
+  { id:"t44", name:"Т-44", class:"Средний танк", badge:"medium", sil:"t34_85", years:"1944–1947", weight:"31.9 т", armor:"45–120 мм", gun:"85-мм пушка С-53", speed:"51 км/ч", crew:4, built:"~1800 (до конца войны)",
+    desc:"Дальнейшее развитие линии Т-34 с новой компоновкой и более низким корпусом. В боях Второй мировой почти не успел применяться, стал основой послевоенного Т-54.",
+    stats:{hp:118,speed:3.4,damage:26,fireRate:850}, playable:true, color:"#3f6f9a" },
+  { id:"smk", name:"СМК", class:"Тяжёлый танк (опытный)", badge:"heavy", sil:"smk", years:"1939", weight:"55 т", armor:"60 мм", gun:"76-мм пушка Л-11 + 45-мм пушка", speed:"35 км/ч", crew:7, built:"1",
+    desc:"Опытный двухбашенный тяжёлый танк, испытан в боях советско-финской войны. В серию не пошёл, уступив более компактному однобашенному КВ.",
+    stats:{hp:150,speed:1.9,damage:22,fireRate:1300}, playable:false, color:"#cc5340" },
+  { id:"t100", name:"Т-100", class:"Тяжёлый танк (опытный)", badge:"heavy", sil:"smk", years:"1939", weight:"58 т", armor:"60 мм", gun:"76-мм пушка Л-11 + 45-мм пушка", speed:"36 км/ч", crew:6, built:"1",
+    desc:"Второй советский опытный двухбашенный тяжёлый танк, конкурент СМК. По итогам испытаний предпочтение отдали более технологичному КВ.",
+    stats:{hp:150,speed:1.9,damage:22,fireRate:1300}, playable:false, color:"#cc5340" },
 ];
 const PLAYABLE_VEHICLES = VEHICLE_DATABASE.filter(v => v.playable);
 
@@ -763,6 +811,38 @@ const SILHOUETTES = {
     <rect x="44" y="46" width="16" height="12" rx="2"/>
     <rect x="58" y="49" width="12" height="4"/>
     ${silAntenna(72, 30, 60)}`,
+  carOld: `
+    ${silWheels([22, 42, 60, 78], 8)}
+    <polygon points="14,80 14,66 22,58 74,58 82,66 82,80"/>
+    <rect x="40" y="44" width="16" height="16" rx="1"/>
+    <rect x="55" y="49" width="11" height="4"/>`,
+  tankette: `
+    <rect x="12" y="84" width="55" height="6" rx="1"/>
+    ${silWheels([20, 32, 44, 58], 5)}
+    <polygon points="14,84 14,74 22,66 34,62 60,62 64,68 64,84"/>
+    <rect x="18" y="56" width="14" height="10" rx="2"/>
+    <rect x="30" y="60" width="12" height="4"/>`,
+  komsomolets: `
+    <rect x="12" y="84" width="62" height="6" rx="1"/>
+    ${silWheels([20, 34, 48, 62], 6)}
+    <polygon points="14,84 14,74 20,66 30,60 46,60 50,66 68,66 68,84"/>
+    <rect x="20" y="60" width="10" height="8" rx="1"/>`,
+  zis30: `
+    <rect x="12" y="84" width="60" height="6" rx="1"/>
+    ${silWheels([20, 32, 44, 58], 5)}
+    <polygon points="14,84 14,74 20,66 32,62 60,62 66,70 66,84"/>
+    <polygon points="38,62 38,48 58,48 64,56 64,62"/>
+    <rect x="58" y="50" width="60" height="5"/>`,
+  smk: `
+    <rect x="12" y="84" width="150" height="6" rx="1"/>
+    ${silWheels([22, 40, 58, 76, 94, 112, 130, 148], 7)}
+    <polygon points="14,80 14,64 30,56 148,56 160,64 160,80"/>
+    <rect x="34" y="42" width="20" height="16" rx="2"/>
+    <rect x="34" y="47" width="16" height="5"/>
+    <rect x="96" y="24" width="34" height="26" rx="3"/>
+    ${silHatch(102, 28, 10, 4)}
+    <rect x="124" y="33" width="30" height="7"/>
+    ${silAntenna(113, 12, 24)}`,
 };
 
 function renderSilhouette(v) {
@@ -1017,7 +1097,7 @@ function renderSilhouette(v) {
   }
   window.ArmyUI = { showScreen };
 
-  const BADGE_LETTER = { light:"Л", medium:"С", heavy:"Т", spg:"СУ", car:"БА", float:"ПЛ" };
+  const BADGE_LETTER = { light:"Л", medium:"С", heavy:"Т", spg:"СУ", car:"БА", float:"ПЛ", flame:"ОТ" };
 
   function badge(v) {
     return '<span class="badge b-' + v.badge + '">' + BADGE_LETTER[v.badge] + '</span>';
