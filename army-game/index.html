@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Танковая Армия СССР</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- Главное меню -->
+    <section id="main-menu" class="screen">
+      <h1>⭐ ТАНКОВАЯ АРМИЯ СССР ⭐</h1>
+      <p class="subtitle">Аркадная игра о советской бронетехнике Второй мировой войны (1939–1945)</p>
+      <div class="menu-buttons">
+        <button id="btn-play" class="btn btn-primary">🎮 В бой</button>
+        <button id="btn-encyclopedia" class="btn">📖 Энциклопедия бронетехники</button>
+      </div>
+      <p class="hint">Управление: WASD / стрелки — движение, мышь — прицел, ЛКМ — огонь</p>
+    </section>
+
+    <!-- Выбор техники -->
+    <section id="select-screen" class="screen hidden">
+      <h2>Выберите боевую машину</h2>
+      <div id="select-list" class="select-grid"></div>
+      <button id="btn-back-1" class="btn btn-secondary">← Назад</button>
+    </section>
+
+    <!-- Энциклопедия -->
+    <section id="encyclopedia-screen" class="screen hidden">
+      <h2>Вся бронетехника СССР во Второй мировой войне</h2>
+      <p class="subtitle">Всего в базе: <span id="encyclopedia-count"></span> образца техники — лёгкие, средние и тяжёлые танки, самоходно-артиллерийские установки и бронеавтомобили</p>
+      <div id="encyclopedia-list" class="encyclopedia-grid"></div>
+      <button id="btn-back-2" class="btn btn-secondary">← Назад</button>
+    </section>
+
+    <!-- Игровой экран -->
+    <section id="game-screen" class="screen">
+      <div id="hud" class="hidden">
+        <div><b>Машина:</b> <span id="hud-vehicle"></span></div>
+        <div><b>Прочность:</b> <span id="hud-hp"></span></div>
+        <div><b>Волна:</b> <span id="hud-wave"></span></div>
+        <div><b>Очки:</b> <span id="hud-score"></span></div>
+      </div>
+      <canvas id="game-canvas" width="900" height="600"></canvas>
+    </section>
+
+    <!-- Экран поражения -->
+    <section id="gameover-screen" class="screen hidden">
+      <h2>💥 Машина подбита</h2>
+      <p>Ваш счёт: <b id="final-score"></b></p>
+      <p>Продержались до волны: <b id="final-wave"></b></p>
+      <div class="menu-buttons">
+        <button id="btn-restart" class="btn btn-primary">Выбрать другую машину</button>
+        <button id="btn-menu" class="btn btn-secondary">В главное меню</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
